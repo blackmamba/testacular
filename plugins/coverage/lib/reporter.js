@@ -4,8 +4,6 @@ var util = require('util');
 var istanbul = require('istanbul');
 var dateformat = require('dateformat');
 
-var helper = require('../helper');
-var log = require('../logger').create('coverage');
 
 var Store = istanbul.Store;
 
@@ -37,7 +35,10 @@ Store.mix(BasePathStore, {
   }
 });
 
-var CoverageReporter = function(rootConfig, emitter) {
+
+// TODO(vojta): inject only what required (config.basePath, config.coverageReporter)
+var CoverageReporter = function(rootConfig, emitter, helper, logger) {
+  var log = logger.create('coverage');
   var config = rootConfig.coverageReporter;
   var basePath = rootConfig.basePath;
   var outDir = config.dir;
@@ -106,6 +107,7 @@ var CoverageReporter = function(rootConfig, emitter) {
     });
   };
 
+  // TODO(vojta): refactor to onExit
   emitter.on('exit', function(done) {
     if (pendingFileWritings) {
       fileWritingFinished = done;
@@ -114,6 +116,8 @@ var CoverageReporter = function(rootConfig, emitter) {
     }
   });
 };
+
+CoverageReporter.$inject = ['config', 'emitter', 'helper', 'logger'];
 
 // PUBLISH
 module.exports = CoverageReporter;

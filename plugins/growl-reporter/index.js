@@ -2,9 +2,6 @@ var util = require('util');
 var growly = require('growly');
 var path = require('path');
 
-var helper = require('../helper');
-var log = require('../logger').create('reporter');
-
 var MSG_SUCCESS = '%d tests passed in %s.';
 var MSG_FAILURE = '%d/%d tests failed in %s.';
 var MSG_ERROR = '';
@@ -27,12 +24,14 @@ var OPTIONS = {
   }
 };
 
-var optionsFor = function(type, browser) {
-  return helper.merge(OPTIONS[type], {title: util.format(OPTIONS[type].title, browser)});
-};
 
+var GrowlReporter = function(helper, logger) {
+  var log = logger.create('reporter.growl');
 
-var GrowlReporter = function() {
+  var optionsFor = function(type, browser) {
+    return helper.merge(OPTIONS[type], {title: util.format(OPTIONS[type].title, browser)});
+  };
+
   growly.register('Testacular', '', [], function(error) {
     var warning = 'No running verion of GNTP found.\n' +
                   'For more information see https://github.com/theabraham/growly.';
@@ -61,6 +60,9 @@ var GrowlReporter = function() {
   };
 };
 
+GrowlReporter.$inject = ['helper', 'logger'];
 
-// PUBLISH
-module.exports = GrowlReporter;
+// PUBLISH DI MODULE
+module.exports = {
+  'reporter:growl': ['type', GrowlReporter]
+};

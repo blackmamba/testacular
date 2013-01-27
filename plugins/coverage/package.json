@@ -1,0 +1,23 @@
+{
+  "name": "testacular-coverage",
+  "version": "0.0.1",
+  "description": "A Testacular plugin. Generate code coverage.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "testacular-plugin",
+    "preprocessor",
+    "reporter",
+    "coverage",
+    "istanbul"
+  ],
+  "author": "Vojta Jina <vojta.jina@gmail.com>",
+  "dependencies": {
+    "istanbul": "0.1.22",
+    "dateformat": ">= 1.0.2-1.2.3"
+  },
+  "license": "MIT"
+}

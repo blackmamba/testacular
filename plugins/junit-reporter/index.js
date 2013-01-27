@@ -3,11 +3,38 @@ var path = require('path');
 var fs = require('fs');
 var builder = require('xmlbuilder');
 
-var helper = require('../helper');
-var log = require('../logger').create('reporter');
 
+// TODO(vojta): refactor this, make it provided object
+var createErrorFormatter = function(basePath, urlRoot) {
+  var URL_REGEXP = new RegExp('http:\\/\\/[^\\/]*' + urlRoot.replace(/\//g, '\\/') +
+                              '(base|absolute)([^\\?\\s]*)(\\?[0-9]*)?', 'g');
 
-var JUnitReporter = function(formatError, outputFile, pkgName, emitter) {
+  return function(msg, indentation) {
+    // remove domain and timestamp from source files
+    // and resolve base path / absolute path urls into absolute path
+    msg = msg.replace(URL_REGEXP, function(full, prefix, path) {
+      if (prefix === 'base') {
+        return basePath + path;
+      } else if (prefix === 'absolute') {
+        return path;
+      }
+    });
+
+    // indent every line
+    if (indentation) {
+      msg = indentation + msg.replace(/\n/g, '\n' + indentation);
+    }
+
+    return msg + '\n';
+  };
+};
+
+var JUnitReporter = function(config, basePath, urlRoot, emitter, logger, helper) {
+  var errorFormatter = createErrorFormatter(basePath, urlRoot);
+  var outputFile = config.outputFile;
+  var pkgName = config.suite;
+  var log = logger.create('reporter.junit');
+
   var xml;
   var suites;
   var pendingFileWritings = 0;
@@ -76,6 +103,7 @@ var JUnitReporter = function(formatError, outputFile, pkgName, emitter) {
     }
   };
 
+  // TODO(vojta): move to onExit
   // wait for writing all the xml files, before exiting
   emitter.on('exit', function(done) {
     if (pendingFileWritings) {
@@ -86,6 +114,10 @@ var JUnitReporter = function(formatError, outputFile, pkgName, emitter) {
   });
 };
 
+JUnitReporter.$inject = ['config.junitReporter', 'config.basePath', 'config.urlRoot', 'emitter',
+    'logger', 'helper'];
 
-// PUBLISH
-module.exports = JUnitReporter;
+// PUBLISH DI MODULE
+module.exports = {
+  'reporter:junit': ['type', JUnitReporter]
+};
